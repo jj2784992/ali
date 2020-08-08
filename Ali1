@@ -1,0 +1,123 @@
+package com.huawei.test;
+
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Random;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
+/**
+ * 题目
+ * 1. 篮子里有100个苹果，将这些苹果进行编号，从0开始到99，现在将这些苹果分成4份，第一份20个，第二份30个，第三份38个，
+ * 最后一份11个，要求是苹果的编号不能连续。
+ * <p>
+ * 2. 启动a,b两个线程，由这两个线程打印出1到100共一百个数字。
+ * 要求a线程打印1、3、5、7等奇数，b线程打印2、4、6、8等偶数。
+ * 依次串行打印，即 打印完1之后，再打印2，然后是3、4、5……直到100
+ * <p>
+ * 3. 评测题目: 请编写一个红包的发放算法，将一笔钱，随机发给n个人。
+ */
+
+public class Ali1 implements Runnable {
+
+    public static void main(String[] args) throws InterruptedException {
+
+        //题目1
+        new Thread(new Ali1("thread1")).start();
+        new Thread(new Ali1("thread2")).start();
+
+        TimeUnit.SECONDS.sleep(3);
+
+        //题目2
+        Ali2.aliTest1();
+
+        //题目3
+        Ali3.sendM(5, new BigDecimal(500));
+    }
+
+    private String name;
+
+    public Ali1(String name) {
+        this.name = name;
+    }
+
+    private static AtomicInteger i = new AtomicInteger(1);
+
+    static Lock lock = new ReentrantLock(true);
+
+    public void run() {
+        Thread.currentThread().setName(name);
+
+        int currentInt = 0;
+        while (true) {
+            try {
+                lock.lock();
+                if (i.get() > 100) {
+                    return;
+                }
+                if (Thread.currentThread().getName().equals("thread1") && (currentInt = i.get()) % 2 == 1) {
+                    i.addAndGet(1);
+                    System.out.println(Thread.currentThread().getName() + "--------" + currentInt);
+                } else if (Thread.currentThread().getName().equals("thread2") && (currentInt = i.get()) % 2 == 0) {
+                    i.addAndGet(1);
+                    System.out.println(Thread.currentThread().getName() + "--------" + currentInt);
+                }
+            } finally {
+                lock.unlock();
+            }
+        }
+
+    }
+}
+
+class Ali2 {
+    static void aliTest1() {
+
+        ArrayList arrayList = new ArrayList(256);
+
+        for (int i = 0; i < 100; arrayList.add(i), i++)
+
+            Collections.shuffle(arrayList);
+        System.out.println(arrayList.toString());
+
+    }
+}
+
+class Ali3 {
+
+    private static BigDecimal minBigDecimal = new BigDecimal(0.01).setScale(2, BigDecimal.ROUND_HALF_UP);
+
+    static void sendM(int num, BigDecimal bigDecimal) {
+
+        BigDecimal sumBigDecimal = new BigDecimal(0);
+        BigDecimal maxBigDecimal = bigDecimal.subtract(minBigDecimal.multiply(new BigDecimal(num - 1))).setScale(2, BigDecimal.ROUND_HALF_UP);
+        for (int i = 0; i < num; i++) {
+            if (i == num - 1) {
+                System.out.println(i + "分到了：" + bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP));
+                sumBigDecimal = sumBigDecimal.add(bigDecimal.setScale(2, BigDecimal.ROUND_HALF_UP));
+                break;
+            }
+            double v = new Random().nextInt(bigDecimal.intValue()) * new Random().nextDouble();
+            BigDecimal multiply = new BigDecimal(v);
+            if (multiply.compareTo(minBigDecimal) < 0) {
+                multiply = minBigDecimal;
+            }
+            if (multiply.compareTo(maxBigDecimal) > 0) {
+                multiply = maxBigDecimal;
+            }
+            multiply = multiply.setScale(2, BigDecimal.ROUND_HALF_UP);
+            maxBigDecimal = maxBigDecimal.subtract(multiply).add(minBigDecimal);
+            System.out.println(i + "分到了：" + multiply);
+            sumBigDecimal = sumBigDecimal.add(multiply);
+            bigDecimal = bigDecimal.subtract(multiply);
+
+        }
+
+        System.out.println("sumBigDecimal=" + sumBigDecimal);
+        System.out.println("抢完了");
+    }
+
+}
