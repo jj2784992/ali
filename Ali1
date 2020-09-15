@@ -58,10 +58,10 @@ public class Ali1 implements Runnable {
                 if (i.get() > 100) {
                     return;
                 }
-                if (Thread.currentThread().getName().equals("thread1") && (currentInt = i.get()) % 2 == 1) {
+                if (Thread.currentThread().getName().equals("thread1") && (currentInt = i.get()) & 1 == 1) {
                     i.addAndGet(1);
                     System.out.println(Thread.currentThread().getName() + "--------" + currentInt);
-                } else if (Thread.currentThread().getName().equals("thread2") && (currentInt = i.get()) % 2 == 0) {
+                } else if (Thread.currentThread().getName().equals("thread2") && (currentInt = i.get()) & 1 == 0) {
                     i.addAndGet(1);
                     System.out.println(Thread.currentThread().getName() + "--------" + currentInt);
                 }
